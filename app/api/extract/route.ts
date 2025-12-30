@@ -87,6 +87,7 @@ Note:
 - If boc brand is not mentioned in post title, need to assign bochk in post title, add this '中银香港' at the end of post title
 - Do not miss any post related to defined channel above
 - Do not change the casing of extracted url
+- Do not include commnents and sentiment in both post thread_title and post_message
 
 ────────────────────────────────────────
 
@@ -206,7 +207,9 @@ Return JSON array in output:
             thread_link: data.post_link,
             post_link: data.post_link,
             thread_title: data.thread_title,
-            post_message: data.post_message,
+            post_message: data.post_message
+              ? data.post_message
+              : data.thread_title,
             post_timestamp: isoUtc,
             unix_timestamp: unixMs,
             comment_count: data.comment_count,
