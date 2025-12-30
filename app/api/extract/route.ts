@@ -25,7 +25,7 @@ From each valid WhatsApp message, extract:
 •⁠  ⁠Timestamp (HK time)
 •⁠  ⁠Post title
 •⁠  ⁠Post message
-•⁠  ⁠URL
+•⁠  ⁠URL (keep the url extraction as it is)
 •⁠  ⁠Timestamp conversion
 •⁠  comment count
 •⁠  if timestamp cannot be parsed, return null
