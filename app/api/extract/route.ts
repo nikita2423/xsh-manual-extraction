@@ -25,7 +25,7 @@ From each valid WhatsApp message, extract:
 •⁠  ⁠Timestamp (HK time)
 •⁠  ⁠Post title
 •⁠  ⁠Post message
-•⁠  ⁠URL (keep the url extraction as it is)
+•⁠  ⁠URL (keep the url as it is while extraction)
 •⁠  ⁠Timestamp conversion
 •⁠  comment count
 •⁠  if timestamp cannot be parsed, return null
@@ -69,6 +69,24 @@ post_timestamp = ISO8601 UTC
 unix_timestamp = 13-digit Unix timestamp (UTC)
 No line breaks, no indentation.
 Sort entries in reverse chronological order (newest → oldest) based on the WhatsApp timestamp.
+Example post:
+28/12/2025, 18:11 - +852 9837 8608: 小紅書 : 中银香港的申请都搞懵了 (中性)
+
+中银香港遇到“我们未能处理您的申请，请亲临任何一间分行办理手续。（IJ9060）”应该咋整啊？
+
+留言 (3)
+
+•⁠ 22号到现在，一点消息都没有
+
+
+Post title - 中银香港的申请都搞懵了
+Post message - 中银香港遇到“我们未能处理您的申请，请亲临任何一间分行办理手续。（IJ9060）”应该咋整啊？
+
+Note:
+- If post message cannot be extracted then assign post title to post_message
+- If boc brand is not mentioned in post title, need to assign bochk in post title, add this '中银香港' at the end of post title
+- Do not miss any post related to defined channel above
+- Do not change the casing of extracted url
 
 ────────────────────────────────────────
 
