@@ -1,30 +1,32 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { Loader2 } from "lucide-react"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Loader2 } from "lucide-react";
 
 interface ExtractionPanelProps {
-  onExtract: (input: string, timezone: string) => Promise<void>
-  loading: boolean
+  onExtract: (input: string, timezone: string) => Promise<void>;
+  loading: boolean;
 }
 
 export function ExtractionPanel({ onExtract, loading }: ExtractionPanelProps) {
-  const [input, setInput] = useState("")
-  const [timezone, setTimezone] = useState("IST")
+  const [input, setInput] = useState("");
+  const [timezone, setTimezone] = useState("IST");
 
   const handleClick = () => {
     if (input.trim()) {
-      onExtract(input, timezone)
+      onExtract(input, timezone);
     }
-  }
+  };
 
   return (
     <div className="p-6 space-y-4">
       <div className="space-y-2">
         <h2 className="text-xl font-semibold text-foreground">Input Data</h2>
-        <p className="text-sm text-muted-foreground">Enter the data you want to extract</p>
+        <p className="text-sm text-muted-foreground">
+          Enter the data you want to extract
+        </p>
       </div>
 
       <Textarea
@@ -34,7 +36,7 @@ export function ExtractionPanel({ onExtract, loading }: ExtractionPanelProps) {
         disabled={loading}
         className="min-h-64 resize-none bg-input border border-border text-foreground placeholder:text-muted-foreground"
       />
-
+      {/* 
       <div className="space-y-2">
         <label className="text-sm font-medium text-foreground">Timezone</label>
         <select
@@ -46,7 +48,7 @@ export function ExtractionPanel({ onExtract, loading }: ExtractionPanelProps) {
           <option value="IST">IST (Indian Standard Time)</option>
           <option value="HKT">HKT (Hong Kong Time)</option>
         </select>
-      </div>
+      </div> */}
 
       <Button
         onClick={handleClick}
@@ -63,5 +65,5 @@ export function ExtractionPanel({ onExtract, loading }: ExtractionPanelProps) {
         )}
       </Button>
     </div>
-  )
+  );
 }
