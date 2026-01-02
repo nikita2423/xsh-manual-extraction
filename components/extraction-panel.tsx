@@ -8,10 +8,16 @@ import { Loader2 } from "lucide-react";
 interface ExtractionPanelProps {
   onExtract: (input: string, timezone: string) => Promise<void>;
   loading: boolean;
+  input: string;
+  setInput: (input: string) => void;
 }
 
-export function ExtractionPanel({ onExtract, loading }: ExtractionPanelProps) {
-  const [input, setInput] = useState("");
+export function ExtractionPanel({
+  onExtract,
+  loading,
+  input,
+  setInput,
+}: ExtractionPanelProps) {
   const [timezone, setTimezone] = useState("IST");
 
   const handleClick = () => {
