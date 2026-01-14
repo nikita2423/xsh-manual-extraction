@@ -163,7 +163,7 @@ Return JSON array in output:
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "qwen/qwen-plus",
+          model: "qwen/qwen3-235b-a22b-2507",
           messages: [{ role: "user", content: prompt }],
           response_format: {
             type: "json_schema",
