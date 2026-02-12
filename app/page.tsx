@@ -35,6 +35,10 @@ export default function Home() {
   const handleInsert = async (data: Record<string, any>) => {
     setLoading(true);
     setError(null);
+    data = {
+      ...data,
+      comment_count: parseInt(data.comment_count),
+    }
     try {
       // Replace with your actual API endpoint
       const response = await fetch("/api/insert", {

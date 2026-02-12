@@ -2,110 +2,231 @@ export async function POST(request: Request) {
   try {
     const { input, timezone } = await request.json();
     const prompt = `
-You are transforming WhatsApp chat logs into structured JSON objects.
-Follow these rules exactly:
-•⁠  ⁠Extraction window (IMPORTANT)
-Only extract posts whose WhatsApp timestamp is within the last 14 days relative to the time of processing.
-•⁠  ⁠If a message is older than 14 days, ignore it completely.
-•⁠  ⁠If the timestamp cannot be parsed, ignore the message.
-•⁠  ⁠Which messages to extract
-Only extract messages that meet ALL of the following:
-•⁠  ⁠Platform is 小红书 / Xiaohongshu / XHS
-•⁠  ⁠Contains a post title (the line after “小红书:” or “小紅書：”)
-•⁠  ⁠Contains a URL (xhslink.com or xiaohongshu.com)
-•⁠  ⁠Timestamp is within the last 14 days
-•⁠  Considering current timezone is ${timezone}
-Ignore:
-•⁠  ⁠Comments
-•⁠  ⁠Deleted messages
-•⁠  ⁠Non-XHS platforms (Douyin, Facebook, HKDiscuss, etc.)
-•⁠  ⁠Any message older than 14 days
-•⁠  ⁠Fields to extract
-From each valid WhatsApp message, extract:
-•⁠  ⁠Timestamp (HK time)
-•⁠  ⁠Post title
-•⁠  ⁠Post message
-•⁠  ⁠URL (keep the url as it is while extraction)
-•⁠  ⁠Timestamp conversion
-•⁠  comment count
-•⁠  if timestamp cannot be parsed, return null
-WhatsApp timestamps are in ${timezone}.
-Convert to UTC:
-UTC = ${timezone}_time - 8 hours
-Output two timestamp formats:
-•⁠  ⁠ISO8601: YYYY-MM-DDTHH:MM:SSZ
-•⁠  ⁠Unix timestamp: 13-digit milliseconds since epoch (UTC)
-Example:
-[30/12/25, 3:34:56 PM]→ 2025-12-30T10:04:56Z and 1767089096000 in IST timezone
+    You are transforming WhatsApp chat logs into structured JSON objects.
+    Follow these rules exactly:
 
-Compute:
-SHA-256(lowercase(post_link))
-Where:
-•⁠  ⁠Use the exact literal URL from WhatsApp
-•⁠  ⁠Convert the URL to lowercase before hashing
-•⁠  ⁠Do NOT expand redirects
-•⁠  ⁠Do NOT normalize
-•⁠  ⁠Output lowercase hex
-•⁠  ⁠Static fields (same for all posts)
-'author_id': 'xiaohongshu',
-'author_link': 'https://www.xiaohongshu.com',
-'author_name': 'xiaohongshu',
-'channel': 'xiaohongshu',
-'channel_link': 'https://www.xiaohongshu.com',
-'comment_order': 0,
-'country': 'China',
-'is_comment': false,
-'lang_abbr': 'zh-s',
-'medium': 'Social',
-'raw_raw': 'insert_china',
-'site': 'xiaohongshu'
-•⁠  ⁠Dynamic fields (per post)
-post_message = extracted post message
-thread_title = extracted post title
-post_link = extracted URL
-thread_link = same as post_link
-comment_count = extracted comment count
-post_timestamp = ISO8601 UTC
-unix_timestamp = 13-digit Unix timestamp (UTC)
-No line breaks, no indentation.
-Sort entries in reverse chronological order (newest → oldest) based on the WhatsApp timestamp.
-Example post:
-28/12/2025, 18:11 - +852 9837 8608: 小紅書 : 中银香港的申请都搞懵了 (中性)
+    •⁠  ⁠Extraction window (IMPORTANT)
+    Only extract posts whose WhatsApp timestamp is within the last 14 days relative to the time of processing.
+    •⁠  ⁠If a message is older than 14 days, ignore it completely.
+    •⁠  ⁠If the timestamp cannot be parsed, ignore the message.
+    •⁠  ⁠Which messages to extract
+    Only extract messages that meet ALL of the following:
+    •⁠  ⁠Platform is 小红书 / Xiaohongshu / XHS
+    •⁠  ⁠Contains a post title (the line after “小红书:” or “小紅書：”)
+    •⁠  ⁠Contains a URL (xhslink.com or xiaohongshu.com)
+    •⁠  ⁠Timestamp is within the last 14 days
+    •⁠  Considering current timezone is ${timezone}
+    Ignore:
+    •⁠  ⁠Comments
+    •⁠  ⁠Deleted messages
+    •⁠  ⁠Non-XHS platforms (Douyin, Facebook, HKDiscuss, etc.)
+    •⁠  ⁠Any message older than 14 days
+    •⁠  ⁠Fields to extract
+    From each valid WhatsApp message, extract:
+    •⁠  ⁠Timestamp (HK time)
+    •⁠  ⁠Post title
+    •⁠  ⁠Post message
+    •⁠  ⁠URL (keep the url as it is while extraction)
+    •⁠  ⁠Timestamp conversion
+    •⁠  comment count
+    •⁠  if timestamp cannot be parsed, return null
+    WhatsApp timestamps are in ${timezone}.
+    Convert to UTC:
+    UTC = ${timezone}_time - 8 hours
+    Output two timestamp formats:
+    •⁠  ⁠ISO8601: YYYY-MM-DDTHH:MM:SSZ
+    •⁠  ⁠Unix timestamp: 13-digit milliseconds since epoch (UTC)
+    Example:
+    [30/12/25, 3:34:56 PM]→ 2025-12-30T10:04:56Z and 1767089096000 in IST timezone
 
-中银香港遇到“我们未能处理您的申请，请亲临任何一间分行办理手续。（IJ9060）”应该咋整啊？
+    Compute:
+    SHA-256(lowercase(post_link))
+    Where:
+    •⁠  ⁠Use the exact literal URL from WhatsApp
+    •⁠  ⁠Convert the URL to lowercase before hashing
+    •⁠  ⁠Do NOT expand redirects
+    •⁠  ⁠Do NOT normalize
+    •⁠  ⁠Output lowercase hex
+    •⁠  ⁠Static fields (same for all posts)
+    'author_id': 'xiaohongshu',
+    'author_link': 'https://www.xiaohongshu.com',
+    'author_name': 'xiaohongshu',
+    'channel': 'xiaohongshu',
+    'channel_link': 'https://www.xiaohongshu.com',
+    'comment_order': 0,
+    'country': 'China',
+    'is_comment': false,
+    'lang_abbr': 'zh-s',
+    'medium': 'Social',
+    'raw_raw': 'insert_china',
+    'site': 'xiaohongshu'
+    •⁠  ⁠Dynamic fields (per post)
+    post_message = extracted post message
+    thread_title = extracted post title
+    post_link = extracted URL
+    thread_link = same as post_link
+    comment_count = extracted comment count
+    post_timestamp = ISO8601 UTC
+    unix_timestamp = 13-digit Unix timestamp (UTC)
+    No line breaks, no indentation.
+    Sort entries in reverse chronological order (newest → oldest) based on the WhatsApp timestamp.
 
-留言 (3)
+    Example post:
+    28/12/2025, 18:11 - +852 9837 8608: 小紅書 : 中银香港的申请都搞懵了 (中性)
 
-•⁠ 22号到现在，一点消息都没有
+    中银香港遇到“我们未能处理您的申请，请亲临任何一间分行办理手续。（IJ9060）”应该咋整啊？
+
+    留言 (3)
+
+    •⁠ 22号到现在，一点消息都没有
 
 
-Post title - 中银香港的申请都搞懵了
-Post message - 中银香港遇到“我们未能处理您的申请，请亲临任何一间分行办理手续。（IJ9060）”应该咋整啊？
+    Post title - 中银香港的申请都搞懵了
+    Post message - 中银香港遇到“我们未能处理您的申请，请亲临任何一间分行办理手续。（IJ9060）”应该咋整啊？
 
-Note:
-- If post message cannot be extracted then assign post title to post_message
-- If boc brand is not mentioned in post title, need to assign bochk in post title, add this '中银香港' at the end of post title
-- Do not miss any post related to defined channel above
-- Do not change the casing of extracted url
-- Do not include commnents and sentiment in both post thread_title and post_message
 
-────────────────────────────────────────
+    Example post:
+中银香港万事达扣账卡可以直接在海外消费吗 礼貌求问...
 
-*Posts Text to Analyze:*
-${input}
+礼貌求问友友们 已知这张卡可以直接扣港元储蓄 如果去新加坡/台湾玩刷卡也会直接港元结算吗 会有手续费吗？还是可以直接0手续费直接扣港元储蓄户口 （在考虑要不要换汇）
+谢谢[抽泣R][抽泣R][抽泣R]
+	
+补充：这张卡是拍卡还是插卡呀！
+	
+#中银香港 #中银香港扣账卡 #香港生活 #新加坡 #master扣账卡 
 
-Return JSON array in output:
-{[
-  {
-    "post_link": "<extracted post link>",
-    "thread_title": "<extracted post title>",
-    "post_message": "<extracted post message>",
-    "post_timestamp": "<ISO8601 UTC>",
-    "unix_timestamp": "<13-digit Unix timestamp (UTC)>",
-    "comment_count": "<Extracted comment count in number>"
-  }
-]}
-`;
+
+ http://xhslink.com/o/zwmzZXkSkO 
+Copy and open Xiaohongshu to view the full post！
+
+    Post title - 中银香港万事达扣账卡可以直接在海外消费吗 礼貌求问...
+    Post message - 礼貌求问友友们 已知这张卡可以直接扣港元储蓄 如果去新加坡/台湾玩刷卡也会直接港元结算吗 会有手续费吗？还是可以直接0手续费直接扣港元储蓄户口 （在考虑要不要换汇）
+谢谢[抽泣R][抽泣R][抽泣R]
+	
+补充：这张卡是拍卡还是插卡呀！
+	
+#中银香港 #中银香港扣账卡 #香港生活 #新加坡 #master扣账卡 
+
+
+    Note:
+    - If post message cannot be extracted then assign post title to post_message
+    - If boc brand is not mentioned in post title, need to assign bochk in post title, add this '中银香港' at the end of post title
+    - Do not miss any post related to defined channel above
+    - Do not change the casing of extracted url
+    - Do not include commnents and sentiment in both post thread_title and post_message
+    - Do not use example posts for extraction
+    - Do not provide example post as a output
+
+    ────────────────────────────────────────
+
+    *Posts Text to Analyze:*
+    ${input}
+
+    Return JSON array in output:
+    {[
+      {
+        "post_link": "<extracted post link>",
+        "thread_title": "<extracted post title>",
+        "post_message": "<extracted post message>",
+        "post_timestamp": "<ISO8601 UTC>",
+        "unix_timestamp": "<13-digit Unix timestamp (UTC)>",
+        "comment_count": "<Extracted comment count in number>"
+      }
+    ]}
+    `;
+    //     const prompt = `
+    //      You are transforming ONLY the provided WhatsApp chat log input into structured JSON objects.
+
+    // ABSOLUTE RULES (HIGHEST PRIORITY)
+    // - Use ONLY data explicitly present in the input WhatsApp messages.
+    // - DO NOT reuse, adapt, paraphrase, or reference any example post shown in this prompt.
+    // - DO NOT fabricate, infer, or generate placeholder posts.
+    // - If no valid WhatsApp messages meet the criteria, return an empty JSON array: [].
+    // - Never include sample data, demo data, or training examples in the output.
+
+    // Extraction Window (MANDATORY)
+    // - Only extract posts whose WhatsApp timestamp is within the last 14 days relative to the time of processing.
+    // - If a message is older than 14 days, ignore it completely.
+    // - If the timestamp cannot be parsed, ignore the message.
+
+    // Messages to Extract (ALL conditions required)
+    // - Platform is 小红书 / 小紅書 / Xiaohongshu / XHS
+    // - Contains a post title (line immediately after “小红书:” or “小紅書：”)
+    // - Contains a URL from xhslink.com or xiaohongshu.com
+    // - Timestamp is within the last 14 days
+    // - Current timezone is ${timezone}
+
+    // Ignore the Following
+    // - Comments or replies
+    // - Deleted messages
+    // - Non-XHS platforms (Douyin, Facebook, HKDiscuss, etc.)
+    // - Messages older than 14 days
+    // - Sentiment labels or metadata
+
+    // Fields to Extract (Per Valid Post)
+    // - post_message
+    // - thread_title
+    // - post_link
+    // - thread_link (same as post_link)
+    // - comment_count
+    // - post_timestamp (ISO8601 UTC)
+    // - unix_timestamp (13-digit milliseconds UTC)
+
+    // Do NOT guess or infer missing fields.
+
+    // Timestamp Handling
+    // - WhatsApp timestamps are in ${timezone}
+    // - Convert to UTC using: UTC = ${timezone}_time - 8 hours
+    // - Output both:
+    //   - ISO8601: YYYY-MM-DDTHH:MM:SSZ
+    //   - Unix timestamp: 13-digit milliseconds (UTC)
+    // - If timestamp parsing fails, set both timestamps to null
+
+    // Hash Computation
+    // Compute SHA-256(lowercase(post_link))
+    // - Use the exact literal URL from WhatsApp
+    // - Convert URL to lowercase before hashing
+    // - Do NOT expand redirects
+    // - Do NOT normalize
+    // - Output lowercase hex
+
+    // Static Fields (Same for All Posts)
+    // author_id: "xiaohongshu"
+    // author_link: "https://www.xiaohongshu.com"
+    // author_name: "xiaohongshu"
+    // channel: "xiaohongshu"
+    // channel_link: "https://www.xiaohongshu.com"
+    // comment_order: 0
+    // country: "China"
+    // is_comment: false
+    // lang_abbr: "zh-s"
+    // medium: "Social"
+    // raw_raw: "insert_china"
+    // site: "xiaohongshu"
+
+    // Special Rules
+    // - If post_message cannot be extracted, assign thread_title to post_message
+    // - If 中银香港 is not mentioned in thread_title, append 中银香港 at the end
+    // - Do NOT include comments or sentiment text
+    // - Do NOT change the casing of extracted URLs
+    // - Do NOT miss any post related to the defined channel
+    // - Do NOT use example posts for extraction
+    // ────────────────────────────────────────
+    // *Posts Text to Analyze:*
+    // ${input}
+
+    // Return JSON array in output:
+    // {[
+    //   {
+    //     "post_link": "<extracted post link>",
+    //     "thread_title": "<extracted post title>",
+    //     "post_message": "<extracted post message>",
+    //     "post_timestamp": "<ISO8601 UTC>",
+    //     "unix_timestamp": "<13-digit Unix timestamp (UTC)>",
+    //     "comment_count": "<Extracted comment count in number>"
+    //   }
+    // ]}
+    //      `
     const OPENROUTER_KEY = process.env.OPEN_ROUTER_KEY;
     const schema = {
       type: "array",
