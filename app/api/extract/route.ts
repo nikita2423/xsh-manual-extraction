@@ -6,38 +6,31 @@ export async function POST(request: Request) {
     Follow these rules exactly:
 
     •⁠  ⁠Extraction window (IMPORTANT)
-    Only extract posts whose WhatsApp timestamp is within the last 14 days relative to the time of processing.
-    •⁠  ⁠If a message is older than 14 days, ignore it completely.
-    •⁠  ⁠If the timestamp cannot be parsed, ignore the message.
-    •⁠  ⁠Which messages to extract
+    Only extract posts.
+    •  Which messages to extract
     Only extract messages that meet ALL of the following:
-    •⁠  ⁠Platform is 小红书 / Xiaohongshu / XHS
-    •⁠  ⁠Contains a post title (the line after “小红书:” or “小紅書：”)
-    •⁠  ⁠Contains a URL (xhslink.com or xiaohongshu.com)
-    •⁠  ⁠Timestamp is within the last 14 days
-    •⁠  Considering current timezone is ${timezone}
+    •  Platform can be identified by:
+        • Explicit text mention (小红书 / Xiaohongshu / XHS), OR
+        • Presence of xhslink.com or xiaohongshu.com URL
+    •  Contains a post title, defined as EITHER:
+      • The line after “小红书:” or “小紅書：”, OR
+      • The first non-empty line of the message before the main body, if no explicit 小红书 marker exists
+    •  Contains a URL (xhslink.com or xiaohongshu.com)
+    
     Ignore:
     •⁠  ⁠Comments
     •⁠  ⁠Deleted messages
     •⁠  ⁠Non-XHS platforms (Douyin, Facebook, HKDiscuss, etc.)
-    •⁠  ⁠Any message older than 14 days
-    •⁠  ⁠Fields to extract
+    •⁠  Ignore Sentiment present before the post message e.g (中性),(負面)
+
+
+    ⁠Fields to extract
     From each valid WhatsApp message, extract:
     •⁠  ⁠Timestamp (HK time)
     •⁠  ⁠Post title
     •⁠  ⁠Post message
     •⁠  ⁠URL (keep the url as it is while extraction)
-    •⁠  ⁠Timestamp conversion
-    •⁠  comment count
-    •⁠  if timestamp cannot be parsed, return null
-    WhatsApp timestamps are in ${timezone}.
-    Convert to UTC:
-    UTC = ${timezone}_time - 8 hours
-    Output two timestamp formats:
-    •⁠  ⁠ISO8601: YYYY-MM-DDTHH:MM:SSZ
-    •⁠  ⁠Unix timestamp: 13-digit milliseconds since epoch (UTC)
-    Example:
-    [30/12/25, 3:34:56 PM]→ 2025-12-30T10:04:56Z and 1767089096000 in IST timezone
+    •⁠  ⁠comment count
 
     Compute:
     SHA-256(lowercase(post_link))
@@ -72,7 +65,7 @@ export async function POST(request: Request) {
     Sort entries in reverse chronological order (newest → oldest) based on the WhatsApp timestamp.
 
     Example post:
-    28/12/2025, 18:11 - +852 9837 8608: 小紅書 : 中银香港的申请都搞懵了 (中性)
+    小紅書 : 中银香港的申请都搞懵了 (中性)
 
     中银香港遇到“我们未能处理您的申请，请亲临任何一间分行办理手续。（IJ9060）”应该咋整啊？
 
@@ -83,6 +76,7 @@ export async function POST(request: Request) {
 
     Post title - 中银香港的申请都搞懵了
     Post message - 中银香港遇到“我们未能处理您的申请，请亲临任何一间分行办理手续。（IJ9060）”应该咋整啊？
+    Comment - 留言 (3)
 
 
     Example post:
@@ -109,13 +103,14 @@ Copy and open Xiaohongshu to view the full post！
 
 
     Note:
-    - If post message cannot be extracted then assign post title to post_message
+    - If post message cannot be extracted then assign post title to post_message, don't assign comments to post_message
     - If boc brand is not mentioned in post title, need to assign bochk in post title, add this '中银香港' at the end of post title
     - Do not miss any post related to defined channel above
     - Do not change the casing of extracted url
     - Do not include commnents and sentiment in both post thread_title and post_message
     - Do not use example posts for extraction
     - Do not provide example post as a output
+    - If the structure matches Xiaohongshu content and contains a valid XHS URL, DO NOT discard the post solely due to missing title markers or comment count.
 
     ────────────────────────────────────────
 
