@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -44,6 +44,32 @@ export function ExtractionPanel({
   const [bank, setBank] = useState("bochk");
   const [includeDate, setIncludeDate] = useState(false);
   const [selectedDate, setSelectedDate] = useState("");
+
+  // Load bank, includeDate, and date from localStorage on mount
+  useEffect(() => {
+    const savedBank = localStorage.getItem("selectedBank");
+    const savedIncludeDate = localStorage.getItem("includeDate");
+    const savedDate = localStorage.getItem("selectedDate");
+
+    if (savedBank) setBank(savedBank);
+    if (savedIncludeDate) setIncludeDate(JSON.parse(savedIncludeDate));
+    if (savedDate) setSelectedDate(savedDate);
+  }, []);
+
+  // Save bank to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem("selectedBank", bank);
+  }, [bank]);
+
+  // Save includeDate to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem("includeDate", JSON.stringify(includeDate));
+  }, [includeDate]);
+
+  // Save date to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem("selectedDate", selectedDate);
+  }, [selectedDate]);
 
   const handleClick = () => {
     if (input.trim()) {
