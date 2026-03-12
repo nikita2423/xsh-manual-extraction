@@ -1,8 +1,28 @@
 export async function POST(request: Request) {
   try {
-    const { input, timezone } = await request.json();
+    const { input, timezone, bank, date } = await request.json();
+
+    // Bank configurations
+    const bankConfig: Record<string, { name: string; keywords: string[] }> = {
+      bochk: { name: "中银香港", keywords: ["中银香港", "中银", "BOC"] },
+      scb: {
+        name: "渣打香港",
+        keywords: ["渣打香港", "渣打", "Standard Chartered"],
+      },
+      hsbc: { name: "汇丰香港", keywords: ["汇丰香港", "汇丰", "HSBC"] },
+      hang_seng: {
+        name: "恒生香港",
+        keywords: ["恒生香港", "恒生", "Hang Seng"],
+      },
+      citi: { name: "香港花旗", keywords: ["香港花旗", "花旗", "Citibank"] },
+    };
+
+    const selectedBank = bankConfig[bank] || bankConfig.bochk;
+    const bankKeywords = selectedBank.keywords.join(" OR ");
+
     const prompt = `
     You are transforming WhatsApp chat logs into structured JSON objects.
+    Focus on extracting posts related to ${selectedBank.name}.
     Follow these rules exactly:
 
     •⁠  ⁠Extraction window (IMPORTANT)
@@ -13,15 +33,17 @@ export async function POST(request: Request) {
         • Explicit text mention (小红书 / Xiaohongshu / XHS), OR
         • Presence of xhslink.com or xiaohongshu.com URL
     •  Contains a post title, defined as EITHER:
-      • The line after “小红书:” or “小紅書：”, OR
+      • The line after "小红书:" or "小紅書：", OR
       • The first non-empty line of the message before the main body, if no explicit 小红书 marker exists
     •  Contains a URL (xhslink.com or xiaohongshu.com)
+    •  Contains mention of: ${bankKeywords}
     
     Ignore:
     •⁠  ⁠Comments
     •⁠  ⁠Deleted messages
     •⁠  ⁠Non-XHS platforms (Douyin, Facebook, HKDiscuss, etc.)
     •⁠  Ignore Sentiment present before the post message e.g (中性),(負面)
+    •⁠  ⁠Posts that do NOT mention ${selectedBank.name}
 
 
     ⁠Fields to extract
@@ -104,7 +126,7 @@ Copy and open Xiaohongshu to view the full post！
 
     Note:
     - If post message cannot be extracted then assign post title to post_message, don't assign comments to post_message
-    - If boc brand is not mentioned in post title, need to assign bochk in post title, add this '中银香港' at the end of post title
+    - If bank is not mentioned in post title, need to append '${selectedBank.name}' at the end of post title
     - Do not miss any post related to defined channel above
     - Do not change the casing of extracted url
     - Do not include commnents and sentiment in both post thread_title and post_message
@@ -129,99 +151,6 @@ Copy and open Xiaohongshu to view the full post！
       }
     ]}
     `;
-    //     const prompt = `
-    //      You are transforming ONLY the provided WhatsApp chat log input into structured JSON objects.
-
-    // ABSOLUTE RULES (HIGHEST PRIORITY)
-    // - Use ONLY data explicitly present in the input WhatsApp messages.
-    // - DO NOT reuse, adapt, paraphrase, or reference any example post shown in this prompt.
-    // - DO NOT fabricate, infer, or generate placeholder posts.
-    // - If no valid WhatsApp messages meet the criteria, return an empty JSON array: [].
-    // - Never include sample data, demo data, or training examples in the output.
-
-    // Extraction Window (MANDATORY)
-    // - Only extract posts whose WhatsApp timestamp is within the last 14 days relative to the time of processing.
-    // - If a message is older than 14 days, ignore it completely.
-    // - If the timestamp cannot be parsed, ignore the message.
-
-    // Messages to Extract (ALL conditions required)
-    // - Platform is 小红书 / 小紅書 / Xiaohongshu / XHS
-    // - Contains a post title (line immediately after “小红书:” or “小紅書：”)
-    // - Contains a URL from xhslink.com or xiaohongshu.com
-    // - Timestamp is within the last 14 days
-    // - Current timezone is ${timezone}
-
-    // Ignore the Following
-    // - Comments or replies
-    // - Deleted messages
-    // - Non-XHS platforms (Douyin, Facebook, HKDiscuss, etc.)
-    // - Messages older than 14 days
-    // - Sentiment labels or metadata
-
-    // Fields to Extract (Per Valid Post)
-    // - post_message
-    // - thread_title
-    // - post_link
-    // - thread_link (same as post_link)
-    // - comment_count
-    // - post_timestamp (ISO8601 UTC)
-    // - unix_timestamp (13-digit milliseconds UTC)
-
-    // Do NOT guess or infer missing fields.
-
-    // Timestamp Handling
-    // - WhatsApp timestamps are in ${timezone}
-    // - Convert to UTC using: UTC = ${timezone}_time - 8 hours
-    // - Output both:
-    //   - ISO8601: YYYY-MM-DDTHH:MM:SSZ
-    //   - Unix timestamp: 13-digit milliseconds (UTC)
-    // - If timestamp parsing fails, set both timestamps to null
-
-    // Hash Computation
-    // Compute SHA-256(lowercase(post_link))
-    // - Use the exact literal URL from WhatsApp
-    // - Convert URL to lowercase before hashing
-    // - Do NOT expand redirects
-    // - Do NOT normalize
-    // - Output lowercase hex
-
-    // Static Fields (Same for All Posts)
-    // author_id: "xiaohongshu"
-    // author_link: "https://www.xiaohongshu.com"
-    // author_name: "xiaohongshu"
-    // channel: "xiaohongshu"
-    // channel_link: "https://www.xiaohongshu.com"
-    // comment_order: 0
-    // country: "China"
-    // is_comment: false
-    // lang_abbr: "zh-s"
-    // medium: "Social"
-    // raw_raw: "insert_china"
-    // site: "xiaohongshu"
-
-    // Special Rules
-    // - If post_message cannot be extracted, assign thread_title to post_message
-    // - If 中银香港 is not mentioned in thread_title, append 中银香港 at the end
-    // - Do NOT include comments or sentiment text
-    // - Do NOT change the casing of extracted URLs
-    // - Do NOT miss any post related to the defined channel
-    // - Do NOT use example posts for extraction
-    // ────────────────────────────────────────
-    // *Posts Text to Analyze:*
-    // ${input}
-
-    // Return JSON array in output:
-    // {[
-    //   {
-    //     "post_link": "<extracted post link>",
-    //     "thread_title": "<extracted post title>",
-    //     "post_message": "<extracted post message>",
-    //     "post_timestamp": "<ISO8601 UTC>",
-    //     "unix_timestamp": "<13-digit Unix timestamp (UTC)>",
-    //     "comment_count": "<Extracted comment count in number>"
-    //   }
-    // ]}
-    //      `
     const OPENROUTER_KEY = process.env.OPEN_ROUTER_KEY;
     const schema = {
       type: "array",
@@ -291,7 +220,7 @@ Copy and open Xiaohongshu to view the full post！
           },
           temperature: 0.2,
         }),
-      }
+      },
     );
     const result = await response.json();
     console.log("Result", result);
@@ -304,13 +233,19 @@ Copy and open Xiaohongshu to view the full post！
       console.log("data_json", dataJson, typeof dataJson);
 
       if (Array.isArray(dataJson)) {
+        // Determine extraction date: use provided date or current date
+        let extractionDate: Date;
+        if (date) {
+          extractionDate = new Date(date);
+        } else {
+          extractionDate = new Date();
+        }
+
+        const isoUtc = extractionDate.toISOString();
+        const unixMs = extractionDate.getTime();
+
         dataJson.forEach((data) => {
           console.log("data", data);
-          const now = new Date();
-          // UTC ISO format
-          const isoUtc = now.toISOString();
-          // Unix timestamp (milliseconds)
-          const unixMs = now.getTime();
           console.log(isoUtc);
           console.log("Unix Timestamp (ms):", unixMs);
           results.push({

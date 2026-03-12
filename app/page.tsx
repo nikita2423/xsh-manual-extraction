@@ -11,7 +11,12 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [input, setInput] = useState("");
 
-  const handleExtract = async (input: string, timezone: string) => {
+  const handleExtract = async (
+    input: string,
+    timezone: string,
+    bank: string,
+    date?: string,
+  ) => {
     setLoading(true);
     setError(null);
     try {
@@ -19,7 +24,7 @@ export default function Home() {
       const response = await fetch("/api/extract", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ input, timezone }),
+        body: JSON.stringify({ input, timezone, bank, date }),
       });
 
       if (!response.ok) throw new Error("Failed to extract data");
@@ -38,7 +43,7 @@ export default function Home() {
     data = {
       ...data,
       comment_count: parseInt(data.comment_count),
-    }
+    };
     try {
       // Replace with your actual API endpoint
       const response = await fetch("/api/insert", {
@@ -63,7 +68,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-background via-background to-blue-50 p-4 md:p-8">
-      <div className="max-w-5xl mx-auto space-y-8">
+      <div className="max-w-6xl mx-auto space-y-8">
         {/* Header */}
         <div className="text-center space-y-2">
           <h1 className="text-4xl md:text-5xl font-bold text-foreground">
