@@ -13,7 +13,7 @@ interface ThreadsPanelProps {
   setInput: (input: string) => void;
 }
 
-const KEYWORDS = [{ value: "uo", label: "UO" }];
+const KEYWORDS = [{ value: "香港快運", label: "UO" }];
 
 export function ThreadsPanel({
   onExtract,

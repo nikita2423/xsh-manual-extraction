@@ -145,8 +145,12 @@ export async function POST(request: Request) {
             channel_link: `https://www.threads.net/@${username}`,
             thread_link: data.post_link,
             post_link: data.post_link,
-            thread_title: data.post_message,
-            post_message: data.post_message || keyword,
+            thread_title: data.post_message
+              ? `${data.post_message} ${keyword}`
+              : keyword,
+            post_message: data.post_message
+              ? `${data.post_message} ${keyword}`
+              : keyword,
             post_timestamp: isoUtc,
             unix_timestamp: unixMs,
             comment_count: 0,
