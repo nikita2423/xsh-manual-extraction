@@ -2,14 +2,17 @@
 
 import { useState } from "react";
 import { ExtractionPanel } from "@/components/extraction-panel";
+import { ThreadsPanel } from "@/components/threads-panel";
 import { JsonEditor } from "@/components/json-editor";
 import { Card } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 export default function Home() {
   const [jsonData, setJsonData] = useState<Record<string, any> | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [input, setInput] = useState("");
+  const [threadsInput, setThreadsInput] = useState("");
 
   const handleExtract = async (
     input: string,
@@ -20,7 +23,6 @@ export default function Home() {
     setLoading(true);
     setError(null);
     try {
-      // Replace with your actual API endpoint
       const response = await fetch("/api/extract", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -28,6 +30,33 @@ export default function Home() {
       });
 
       if (!response.ok) throw new Error("Failed to extract data");
+      const data = await response.json();
+      setJsonData(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleThreadsExtract = async (
+    input: string,
+    keyword: string,
+    date?: string,
+  ) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/threads-extract", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ input, keyword, date }),
+      });
+
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || "Failed to extract Threads data");
+      }
       const data = await response.json();
       setJsonData(data);
     } catch (err) {
@@ -45,7 +74,6 @@ export default function Home() {
       comment_count: parseInt(data.comment_count),
     };
     try {
-      // Replace with your actual API endpoint
       const response = await fetch("/api/insert", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -59,6 +87,7 @@ export default function Home() {
       alert("Data inserted successfully!");
       setJsonData(null);
       setInput("");
+      setThreadsInput("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
@@ -88,14 +117,32 @@ export default function Home() {
 
         {/* Main Content Grid */}
         <div className="grid md:grid-cols-2 gap-8">
-          {/* Left Panel - Extraction */}
+          {/* Left Panel - Extraction with Tabs */}
           <Card className="bg-card border-border shadow-sm">
-            <ExtractionPanel
-              onExtract={handleExtract}
-              loading={loading}
-              input={input}
-              setInput={setInput}
-            />
+            <Tabs defaultValue="xsh" className="w-full">
+              <div className="px-6 pt-6">
+                <TabsList className="w-full">
+                  <TabsTrigger value="xsh">XSH Extraction</TabsTrigger>
+                  <TabsTrigger value="threads">Threads Insertor</TabsTrigger>
+                </TabsList>
+              </div>
+              <TabsContent value="xsh">
+                <ExtractionPanel
+                  onExtract={handleExtract}
+                  loading={loading}
+                  input={input}
+                  setInput={setInput}
+                />
+              </TabsContent>
+              <TabsContent value="threads">
+                <ThreadsPanel
+                  onExtract={handleThreadsExtract}
+                  loading={loading}
+                  input={threadsInput}
+                  setInput={setThreadsInput}
+                />
+              </TabsContent>
+            </Tabs>
           </Card>
 
           {/* Right Panel - Editor */}
