@@ -13,7 +13,10 @@ interface ThreadsPanelProps {
   setInput: (input: string) => void;
 }
 
-const KEYWORDS = [{ value: "香港快運", label: "香港快運" }];
+const KEYWORDS = [
+  { value: "香港快運", label: "香港快運" },
+  { value: "七人欖球賽", label: "七人欖球賽" },
+];
 
 export function ThreadsPanel({
   onExtract,
@@ -76,7 +79,7 @@ export function ThreadsPanel({
           {KEYWORDS.map((k) => (
             <button
               key={k.value}
-              onClick={() => setKeyword(k.value)}
+              onClick={() => setKeyword(keyword === k.value ? "" : k.value)}
               disabled={loading}
               className={`px-4 py-3 rounded-lg font-medium text-sm transition-all border ${
                 keyword === k.value
