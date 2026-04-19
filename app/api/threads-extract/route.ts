@@ -39,6 +39,7 @@ export async function POST(request: Request) {
     Note:
     - Do not use the example above for output, only use the actual input provided below
     - Strip query parameters (everything after ?) from the Threads URL
+    - Always normalize the domain to "https://www.threads.com/"
 
     ────────────────────────────────────────
 
