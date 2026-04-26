@@ -2,11 +2,8 @@ export async function POST(request: Request) {
   try {
     const { input, keyword, date } = await request.json();
 
-    if (!input || !keyword) {
-      return Response.json(
-        { error: "Input and keyword are required" },
-        { status: 400 },
-      );
+    if (!input) {
+      return Response.json({ error: "Input is required" }, { status: 400 });
     }
 
     const prompt = `
